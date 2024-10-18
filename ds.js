@@ -13,39 +13,40 @@ const discord = {
     await discord.page.goto(BASE_URL);
   },
 
-  login: async () => {
-    let loginButton = await discord.page.$x('//a[contains(text(), "Login")]');
+  login: async (email, password) => {
+    // Navigate to the login page
+    await discord.page.goto(`${BASE_URL}/login`, { waitUntil: "networkidle2" });
 
-    await loginButton[0].click();
-    await discord.page.waitForNavigation();
-    await discord.page.waitForTimeout(1000);
+    // Wait for email input field
+    await discord.page.waitForSelector('input[name="email"]');
 
-    await discord.page.type('input[name="email"]', process.env.DISCORD_EMAIL, {
-      delay: 200,
-    });
-    await discord.page.type(
-      'input[name="password"]',
-      process.env.DISCORD_PASSWORD,
-      { delay: 100 }
-    );
+    // Type in email
+    await discord.page.type('input[name="email"]', email, { delay: 100 });
 
-    loginButton = await discord.page.$x('//button[contains(text(), "Log In")]');
-    await loginButton[0].click();
-    await discord.page.waitForNavigation();
+    // Wait for password input field
+    await discord.page.waitForSelector('input[name="password"]');
+
+    // Type in password
+    await discord.page.type('input[name="password"]', password, { delay: 100 });
+
+    // Wait for login button to be enabled and click it
+    await discord.page.click('button[type="submit"]');
+
+    // Optionally, wait for navigation after login (e.g., redirect to dashboard)
+    await discord.page.waitForNavigation({ waitUntil: "networkidle2" });
   },
 
-  moveTo: async (serverID, channelID, url) => {
+  moveTo: async (url, serverID, channelID) => {
     await discord.page.goto(url + serverID + "/" + channelID);
-    await discord.page.waitForTimeout(5000);
+    await discord.page.waitForNavigation({ waitUntil: "networkidle2" });
   },
 
   textMSG: async (msg) => {
-    await discord.page.$type('div[data-slate-node="element"]', msg, {
-      delay: 50,
-    });
-    await discord.page.waitForTimeout(3000);
-    await discord.page.keyboard.press("Enter");
-    await discord.page.waitForTimeout(3000);
+    console.log(msg);
+    // Type the message into the input box
+    await discord.page.type('div[data-slate-node="element"]', msg, { delay: 50 });
+
+    // Press 'Enter' to send the message
     await discord.page.keyboard.press("Enter");
   },
 };
